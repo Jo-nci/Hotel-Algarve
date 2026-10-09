@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Algarve - Leadership Revenue & Cancellation Analysis</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --accent: #0f766e;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #dc2626;
+            --success: #16a34a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .deck-container {
+            width: 100vw;
+            height: 100vh;
+            max-width: 1280px;
+            max-height: 720px;
+            background: var(--card-bg);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .slide {
+            display: none;
+            flex: 1;
+            padding: 40px 56px;
+            flex-direction: column;
+            justify-content: space-between;
+            animation: fadeIn 0.4s ease-in-out;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header.slide-header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        header.slide-header h1 {
+            font-size: 26px;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        header.slide-header p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .slide-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        button.nav-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        button.nav-btn:hover {
+            background: var(--primary-light);
+        }
+
+        button.nav-btn:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        /* Content Styling */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card h3 {
+            font-size: 15px;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        ul.styled-list {
+            list-style-type: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        ul.styled-list li {
+            font-size: 13px;
+            line-height: 1.4;
+            position: relative;
+            padding-left: 16px;
+        }
+
+        ul.styled-list li::before {
+            content: "•";
+            color: var(--primary-light);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        ul.large-list {
+            list-style-type: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        ul.large-list li {
+            font-size: 14px;
+            line-height: 1.4;
+            font-weight: 500;
+            color: var(--text);
+            position: relative;
+            padding-left: 16px;
+        }
+
+        ul.large-list li::before {
+            content: "•";
+            color: var(--primary-light);
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        table.data-table th, table.data-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        table.data-table th {
+            background: #e2e8f0;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        table.data-table tr:hover {
+            background: #f1f5f9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-info { background: #e0f2fe; color: #0369a1; }
+
+        /* Mini Chart Styles for Slide 1 */
+        .chart-row {
+            margin-bottom: 10px;
+        }
+        .chart-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 3px;
+            color: var(--text);
+        }
+        .bar-bg {
+            background: #e2e8f0;
+            border-radius: 4px;
+            height: 10px;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+        }
+        .bar-seg {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        /* Visual Stat Box for Slide 1 Box 2 */
+        .stat-box {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            padding: 10px 14px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .stat-number {
+            font-size: 26px;
+            font-weight: 800;
+            color: #991b1b;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: #7f1d1d;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="deck-container">
+
+    <!-- SLIDE 1: Executive Summary -->
+    <div class="slide active" id="slide-1">
+        <header class="slide-header">
+            <h1>Executive Summary</h1>
+            <p>Hotel Algarve Performance & Strategic Revenue Analysis (2015–2017)</p>
+        </header>
+        
+        <div class="grid-2">
+            <div class="card">
+                <h3>1. What kind of booking generates the most money?</h3>
+                <div style="margin-bottom: 12px;">
+                    <div class="chart-row">
+                        <div class="chart-label"><span>Online TA (€4.96M / 41.18%)</span><span style="color:var(--danger)">35.24% Cancel</span></div>
+                        <div class="bar-bg"><div class="bar-seg" style="width: 41.18%; background: var(--primary);"></div></div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label"><span>Offline TA/TO (€3.14M / 26.12%)</span><span style="color:var(--success)">15.23% Cancel</span></div>
+                        <div class="bar-bg"><div class="bar-seg" style="width: 26.12%; background: var(--primary-light);"></div></div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-label"><span>Direct Bookings (€2.44M / 20.28%)</span><span style="color:var(--success)">13.48% Cancel</span></div>
+                        <div class="bar-bg"><div class="bar-seg" style="width: 20.28%; background: var(--accent);"></div></div>
+                    </div>
+                </div>
+                <p style="font-size: 14px; color: var(--text); line-height: 1.4; font-weight: 500;">Online TAs drive top-line volume but introduce severe cancellation risk, whereas Direct/Offline channels provide stable, predictable yield.</p>
+            </div>
+            
+            <div class="card">
+                <h3>2. Should we make bookings non-refundable to cut cancellations?</h3>
+                <div class="stat-box">
+                    <div class="stat-number">94.94%</div>
+                    <div class="stat-label">Non-Refundable Cancellation Rate (1,632 of 1,719 Canceled)</div>
+                </div>
+                <ul class="large-list">
+                    <li><strong>Answer: No.</strong> Blankets mandates do not deter speculative churn.</li>
+                    <li><strong>Strategic Direction:</strong> Focus growth on <strong>Direct & Corporate accounts</strong> (~13–15% cancel) and apply <strong>tiered penalties for OTA & Groups</strong> (35–42% cancel).</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer class="slide-footer">
+            <span>Joan McClean NCI 26213371</span>
+            <div class="controls">
+                <span id="page-indicator">1 / 5</span>
+                <button class="nav-btn" onclick="prevSlide()" id="prev-btn" disabled>Previous</button>
+                <button class="nav-btn" onclick="nextSlide()" id="next-btn">Next</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- SLIDE 2: Revenue & Performance by Market Segment -->
+    <div class="slide" id="slide-2">
+        <header class="slide-header">
+            <h1>Revenue & Performance by Market Segment</h1>
+            <p>Evaluating Volume, Revenue Share, and Churn Risk Across Channels</p>
+        </header>
+
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Market Segment</th>
+                        <th>Total Bookings</th>
+                        <th>Revenue Generated (€)</th>
+                        <th>% of Total Revenue</th>
+                        <th>Cancellation Rate (is_canceled=1)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Online TA</strong></td>
+                        <td>17,729</td>
+                        <td>€4,958,469.40</td>
+                        <td>41.18%</td>
+                        <td><span class="badge badge-danger">35.24% (6,248 / 17,729)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Offline TA/TO</strong></td>
+                        <td>7,472</td>
+                        <td>€3,144,863.08</td>
+                        <td>26.12%</td>
+                        <td><span class="badge badge-success">15.23% (1,138 / 7,472)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Direct</strong></td>
+                        <td>6,513</td>
+                        <td>€2,441,868.50</td>
+                        <td>20.28%</td>
+                        <td><span class="badge badge-success">13.48% (878 / 6,513)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Groups</strong></td>
+                        <td>5,836</td>
+                        <td>€1,278,337.12</td>
+                        <td>10.62%</td>
+                        <td><span class="badge badge-danger">42.39% (2,474 / 5,836)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Corporate</strong></td>
+                        <td>2,309</td>
+                        <td>€214,306.79</td>
+                        <td>1.78%</td>
+                        <td><span class="badge badge-success">15.20% (351 / 2,309)</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Complementary</strong></td>
+                        <td>201</td>
+                        <td>€2,069.53</td>
+                        <td>0.02%</td>
+                        <td><span class="badge badge-success">16.42% (33 / 201)</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer class="slide-footer">
+            <span>Joan McClean NCI 26213371</span>
+            <div class="controls">
+                <span id="page-indicator">2 / 5</span>
+                <button class="nav-btn" onclick="prevSlide()">Previous</button>
+                <button class="nav-btn" onclick="nextSlide()">Next</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- SLIDE 3: Cancellation Dynamics & Policy Strategy -->
+    <div class="slide" id="slide-3">
+        <header class="slide-header">
+            <h1>Cancellation Dynamics & Deposit Policy</h1>
+            <p>Analyzing Deposit Terms and Why Non-Refundable Mandates Fail</p>
+        </header>
+
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 20px;">
+            <!-- Strategic Recommendations Banner -->
+            <div class="card" style="padding: 16px 22px; background: #eff6ff; border-color: #bfdbfe;">
+                <h3 style="margin-bottom: 8px; color: var(--primary); font-size: 16px;">Strategic Recommendations</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; font-size: 14px; line-height: 1.5; font-weight: 500;">
+                    <div><strong>1. Abandon Blanket Rules:</strong> The 94.94% churn proves prepayments do not stop cancellations when plans shift.</div>
+                    <div><strong>2. Target High-Risk Channels:</strong> OTAs (35.24%) & Groups (42.39%) drive significant zero-revenue leakage.</div>
+                    <div><strong>3. Implement Tiered Penalties:</strong> Replace rigid rules with progressive cancellation windows and re-confirmations.</div>
+                </div>
+            </div>
+
+            <!-- Prominent Table -->
+            <div>
+                <h3 style="font-size: 15px; color: var(--primary); margin-bottom: 8px; font-weight: 600;">Cancellation Rate by Deposit Type</h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Deposit Type</th>
+                            <th>Total Bookings</th>
+                            <th>Canceled Bookings</th>
+                            <th>Cancellation Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Non Refund</strong></td>
+                            <td>1,719</td>
+                            <td>1,632</td>
+                            <td><span class="badge badge-danger">94.94%</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>No Deposit</strong></td>
+                            <td>38,199</td>
+                            <td>9,178</td>
+                            <td><span class="badge badge-info">24.03%</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Refundable</strong></td>
+                            <td>142</td>
+                            <td>21</td>
+                            <td><span class="badge badge-success">14.79%</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="slide-footer">
+            <span>Joan McClean NCI 26213371</span>
+            <div class="controls">
+                <span id="page-indicator">3 / 5</span>
+                <button class="nav-btn" onclick="prevSlide()">Previous</button>
+                <button class="nav-btn" onclick="nextSlide()">Next</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- SLIDE 4: Financial Impact & Revenue Protection -->
+    <div class="slide" id="slide-4">
+        <header class="slide-header">
+            <h1>Financial Impact & Timing of Churn</h1>
+            <p>Quantifying Lost Revenue and Lead-Time Vulnerability</p>
+        </header>
+
+        <div class="grid-2">
+            <div class="card" style="justify-content: flex-start; gap: 14px;">
+                <h3>Realized vs. Lost Revenue</h3>
+                <ul class="styled-list">
+                    <li><strong>Total Realized Revenue:</strong> €12.04M (96.36% from completed check-outs + 3.64% retained non-refundable deposits).</li>
+                    <li><strong>Lost Zero-Revenue Cancellations:</strong> <strong>€5.32M</strong> across 9,450 unfulfilled bookings (23.59% of all bookings).</li>
+                    <li><strong>Impact Scale:</strong> Zero-revenue cancellations represent <strong>45.83%</strong> of total check-out lodging revenue.</li>
+                </ul>
+            </div>
+            <div class="card" style="justify-content: flex-start; gap: 14px;">
+                <h3>Lead-Time Vulnerability</h3>
+                <ul class="styled-list">
+                    <li><strong>Average Lead Time (Canceled):</strong> 130.63 days (vs. 78.84 days for completed stays).</li>
+                    <li><strong>Timing Concentration:</strong> <strong>55.62%</strong> of all cancellations occur <strong>3 to 12 months in advance</strong> (91–365 days).</li>
+                    <li><strong>Actionable Opportunity:</strong> Early cancellation windows allow inventory recapture; automated re-confirmation at 60/30 days will mitigate €5.32M in leakage.</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer class="slide-footer">
+            <span>Joan McClean NCI 26213371</span>
+            <div class="controls">
+                <span id="page-indicator">4 / 5</span>
+                <button class="nav-btn" onclick="prevSlide()">Previous</button>
+                <button class="nav-btn" onclick="nextSlide()">Next</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- SLIDE 5: Knowledge Inventory & Next Steps -->
+    <div class="slide" id="slide-5">
+        <header class="slide-header">
+            <h1>Knowledge Inventory & Next Steps</h1>
+            <p>What We Know, What We Do Not Know, and What Data We Need Next</p>
+        </header>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; flex: 1; font-size: 13px;">
+            <div class="card" style="padding: 12px 16px;">
+                <h3>1. What We Know (Empirical Findings)</h3>
+                <p>40,060 bookings analyzed (Jul 2015 – Aug 2017) yielding €12.04M realized revenue. Overall cancellation rate is 27.76% (€5.32M lost). Direct/Corporate channels are highly stable (13–15% cancellation), whereas OTA/Groups are volatile (35–42%). Non-refundable policies fail as a deterrent (94.94% churn).</p>
+            </div>
+            <div class="card" style="padding: 12px 16px;">
+                <h3>2. What We Do Not Know (Analytical Gaps)</h3>
+                <p>Root causes of guest cancellations (e.g., flight disruptions, speculative multi-hotel bookings). Whether released inventory from early cancellations (91–365 days out) was successfully resold at equal ADR. Proportion of payment failures vs. guest-initiated cancellations.</p>
+            </div>
+            <div class="card" style="padding: 12px 16px;">
+                <h3>3. What Data We Need Next</h3>
+                <p>Post-cancellation guest survey reason codes, daily room inventory availability/occupancy logs to measure true displacement, and regional Algarve competitor ADR/occupancy benchmarking.</p>
+            </div>
+        </div>
+
+        <footer class="slide-footer">
+            <span>Joan McClean NCI 26213371</span>
+            <div class="controls">
+                <span id="page-indicator">5 / 5</span>
+                <button class="nav-btn" onclick="prevSlide()" id="prev-btn" disabled>Previous</button>
+                <button class="nav-btn" onclick="nextSlide()" id="next-btn">Next</button>
+            </div>
+        </footer>
+    </div>
+
+</div>
+
+<script>
+    let currentSlide = 1;
+    const totalSlides = 5;
+
+    function showSlide(n) {
+        if (n > totalSlides) currentSlide = totalSlides;
+        if (n < 1) currentSlide = 1;
+
+        document.querySelectorAll('.slide').forEach(slide => {
+            slide.classList.remove('active');
+        });
+
+        document.getElementById(`slide-${currentSlide}`).classList.add('active');
+
+        // Update indicators
+        document.querySelectorAll('#page-indicator').forEach(el => {
+            el.textContent = `${currentSlide} / ${totalSlides}`;
+        });
+
+        document.querySelectorAll('#prev-btn').forEach(btn => {
+            btn.disabled = currentSlide === 1;
+        });
+
+        document.querySelectorAll('#next-btn').forEach(btn => {
+            btn.disabled = currentSlide === totalSlides;
+        });
+    }
+
+    function nextSlide() {
+        if (currentSlide < totalSlides) {
+            currentSlide++;
+            showSlide(currentSlide);
+        }
+    }
+
+    function prevSlide() {
+        if (currentSlide > 1) {
+            currentSlide--;
+            showSlide(currentSlide);
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+            nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            prevSlide();
+        }
+    });
+
+    showSlide(currentSlide);
+</script>
+
+</body>
+</html>
